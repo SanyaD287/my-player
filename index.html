@@ -3,134 +3,276 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мій Плеєр</title>
+    <title>Spotify Web Player</title>
+    <!-- FontAwesome для іконок Spotify -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --accent-red: #ff2a4b;
-            --accent-red-glow: rgba(255, 42, 75, 0.4);
-            --bg-color: #121214;
-            --card-bg: #1e1e22;
-            --card-hover: #28282e;
+            --spotify-green: #1db954;
+            --spotify-green-glow: rgba(29, 185, 84, 0.4);
+            --bg-color: #121212;
+            --card-bg: #181818;
+            --card-hover: #282828;
+            --text-muted: #b3b3b3;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
         }
 
         body { 
-            font-family: Arial, sans-serif; 
-            background: var(--bg-color); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: #000; 
             color: #fff; 
-            text-align: center; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             padding: 15px; 
         }
 
-        .player-box { 
-            max-width: 400px; 
-            margin: 0 auto; 
-            background: var(--card-bg); 
+        .spotify-player { 
+            width: 100%;
+            max-width: 380px; 
+            background: linear-gradient(180deg, #222222 0%, var(--card-bg) 100%); 
             padding: 24px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 25px rgba(255, 42, 75, 0.1); 
-        }
-
-        .progress-wrapper {
-            margin: 20px 0 10px 0;
+            border-radius: 24px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 16px;
+        }
+
+        .header-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        /* Обкладинка треку у стилі Spotify */
+        .cover-art-wrapper {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            background: #282828;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 4px;
+        }
+
+        .cover-art-wrapper i {
+            font-size: 80px;
+            color: #404040;
+        }
+
+        /* Назва пісні та виконавець */
+        .track-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .track-details {
+            overflow: hidden;
+        }
+
+        .track-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .artist-name {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Прогрес-бар перемотки Spotify */
+        .progress-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .progress-container {
             width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 10px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
             cursor: pointer;
             position: relative;
+            transition: height 0.1s;
+        }
+
+        .progress-container:hover {
+            height: 6px;
         }
 
         .progress-bar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #cc1133, var(--accent-red));
-            border-radius: 10px;
-            box-shadow: 0 0 10px var(--accent-red-glow);
-            transition: width 0.1s linear;
+            background: #fff;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .progress-container:hover .progress-bar {
+            background: var(--spotify-green);
         }
 
         .time-display {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
-            color: #a0a0ab;
-            font-weight: bold;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
+        /* Кнопки керування відтворенням Spotify */
         .controls { 
             display: flex; 
-            justify-content: center; 
+            justify-content: space-between; 
             align-items: center; 
-            gap: 15px; 
-            margin: 20px 0; 
+            margin: 4px 0;
         }
 
-        .btn { 
-            background: #2a2a2a; 
+        .btn-icon { 
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .btn-icon:hover { 
             color: #fff; 
-            border: none; 
-            padding: 12px 20px; 
-            font-size: 18px; 
-            border-radius: 12px; 
-            cursor: pointer; 
-            transition: 0.2s;
+            transform: scale(1.08);
         }
 
-        .btn:hover { background: var(--card-hover); }
-        .btn:active { transform: scale(0.95); }
+        .btn-icon.active {
+            color: var(--spotify-green);
+        }
 
         .btn-main { 
-            background: var(--accent-red); 
-            color: #fff; 
-            font-weight: bold; 
-            padding: 14px 24px; 
-            font-size: 20px; 
-            border-radius: 50px; 
-            box-shadow: 0 4px 15px var(--accent-red-glow);
+            background: #fff; 
+            color: #000; 
+            width: 56px;
+            height: 56px;
+            border-radius: 50%; 
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         }
 
-        .btn-main:hover { background: #ff4763; }
+        .btn-main:hover {
+            transform: scale(1.05);
+            background: #f0f0f0;
+            color: #000;
+        }
 
+        /* Регулятор гучності */
+        .volume-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 0 4px;
+        }
+
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        /* Список пісень (Плейлист) */
         ul { 
             list-style: none; 
             padding: 0; 
-            max-height: 350px; 
+            max-height: 180px; 
             overflow-y: auto; 
-            text-align: left; 
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 12px;
         }
 
         li { 
-            padding: 14px; 
-            background: #2a2a2a; 
-            margin-bottom: 8px; 
-            border-radius: 10px; 
+            padding: 10px 12px; 
+            border-radius: 8px; 
             cursor: pointer; 
+            font-size: 14px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             transition: 0.2s;
         }
 
-        li:hover { background: var(--card-hover); }
+        li:hover { 
+            background: var(--card-hover); 
+            color: #fff;
+        }
 
         li.active { 
-            background: var(--accent-red); 
-            color: #fff; 
-            font-weight: bold; 
-            box-shadow: 0 4px 12px var(--accent-red-glow);
+            color: var(--spotify-green); 
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
 
-    <div class="player-box">
-        <h2 id="current-title">Мій Плейлист</h2>
-        
+    <div class="spotify-player">
+        <div class="header-title">Плейлист</div>
+
+        <!-- Обкладинка -->
+        <div class="cover-art-wrapper">
+            <i class="fa-solid fa-music"></i>
+        </div>
+
+        <!-- Інформація про трек -->
+        <div class="track-info">
+            <div class="track-details">
+                <div class="track-name" id="current-title">Назва треку</div>
+                <div class="artist-name" id="current-artist">Мій Плеєр</div>
+            </div>
+            <button class="btn-icon" style="font-size: 20px;"><i class="fa-regular fa-heart"></i></button>
+        </div>
+
         <audio id="audio"></audio>
 
+        <!-- Прогрес-бар перемотки -->
         <div class="progress-wrapper">
             <div class="progress-container" id="progress-container">
                 <div class="progress-bar" id="progress-bar"></div>
@@ -141,12 +283,22 @@
             </div>
         </div>
 
+        <!-- Кнопки керування у стилі Spotify -->
         <div class="controls">
-            <button class="btn" id="prev-btn">⏮</button>
-            <button class="btn btn-main" id="play-btn">▶</button>
-            <button class="btn" id="next-btn">⏭</button>
+            <button class="btn-icon" id="shuffle-btn"><i class="fa-solid fa-shuffle"></i></button>
+            <button class="btn-icon" id="prev-btn"><i class="fa-solid fa-backward-step"></i></button>
+            <button class="btn-icon btn-main" id="play-btn"><i class="fa-solid fa-play" id="play-icon"></i></button>
+            <button class="btn-icon" id="next-btn"><i class="fa-solid fa-forward-step"></i></button>
+            <button class="btn-icon" id="repeat-btn"><i class="fa-solid fa-repeat"></i></button>
         </div>
 
+        <!-- Слайдер гучності -->
+        <div class="volume-wrapper">
+            <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+            <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="1">
+        </div>
+
+        <!-- Список відтворення -->
         <ul id="playlist"></ul>
     </div>
 
@@ -159,22 +311,31 @@
         const playlist = document.getElementById('playlist');
         const audio = document.getElementById('audio');
         const playBtn = document.getElementById('play-btn');
+        const playIcon = document.getElementById('play-icon');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const currentTitle = document.getElementById('current-title');
+        const currentArtist = document.getElementById('current-artist');
         
         const progressBar = document.getElementById('progress-bar');
         const progressContainer = document.getElementById('progress-container');
         const currentTimeEl = document.getElementById('current-time');
         const durationTimeEl = document.getElementById('duration-time');
 
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeIcon = document.getElementById('volume-icon');
+
         let currentTrackIndex = 0;
 
         function updateMediaSession() {
             if ('mediaSession' in navigator) {
+                const parts = songs[currentTrackIndex].name.split('—');
+                const artist = parts.length > 1 ? parts[0].trim() : "Мій Плеєр";
+                const title = parts.length > 1 ? parts[1].trim() : songs[currentTrackIndex].name;
+
                 navigator.mediaSession.metadata = new MediaMetadata({
-                    title: songs[currentTrackIndex].name,
-                    artist: "Мій Плеєр"
+                    title: title,
+                    artist: artist
                 });
 
                 navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
@@ -182,7 +343,6 @@
                 navigator.mediaSession.setActionHandler('play', playPause);
                 navigator.mediaSession.setActionHandler('pause', playPause);
                 
-                // Вимикаємо дії перемотки 10 секунд для системного віджету iOS/Android
                 navigator.mediaSession.setActionHandler('seekbackward', null);
                 navigator.mediaSession.setActionHandler('seekforward', null);
             }
@@ -191,7 +351,15 @@
         function loadTrack(index) {
             currentTrackIndex = index;
             audio.src = songs[index].file;
-            currentTitle.textContent = songs[index].name;
+            
+            const parts = songs[index].name.split('—');
+            if (parts.length > 1) {
+                currentArtist.textContent = parts[0].trim();
+                currentTitle.textContent = parts[1].trim();
+            } else {
+                currentArtist.textContent = "Виконавець";
+                currentTitle.textContent = songs[index].name;
+            }
             
             const items = playlist.querySelectorAll('li');
             items.forEach((li, i) => {
@@ -204,10 +372,10 @@
         function playPause() {
             if (audio.paused) {
                 audio.play();
-                playBtn.textContent = '⏸';
+                playIcon.className = 'fa-solid fa-pause';
             } else {
                 audio.pause();
-                playBtn.textContent = '▶';
+                playIcon.className = 'fa-solid fa-play';
             }
         }
 
@@ -215,14 +383,14 @@
             currentTrackIndex = (currentTrackIndex + 1) % songs.length;
             loadTrack(currentTrackIndex);
             audio.play();
-            playBtn.textContent = '⏸';
+            playIcon.className = 'fa-solid fa-pause';
         }
 
         function prevTrack() {
             currentTrackIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
             loadTrack(currentTrackIndex);
             audio.play();
-            playBtn.textContent = '⏸';
+            playIcon.className = 'fa-solid fa-pause';
         }
 
         function formatTime(seconds) {
@@ -250,13 +418,25 @@
             }
         });
 
+        volumeSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            audio.volume = val;
+            if (val == 0) {
+                volumeIcon.className = 'fa-solid fa-volume-xmark';
+            } else if (val < 0.5) {
+                volumeIcon.className = 'fa-solid fa-volume-low';
+            } else {
+                volumeIcon.className = 'fa-solid fa-volume-high';
+            }
+        });
+
         songs.forEach((song, index) => {
             const li = document.createElement('li');
             li.textContent = song.name;
             li.addEventListener('click', () => {
                 loadTrack(index);
                 audio.play();
-                playBtn.textContent = '⏸';
+                playIcon.className = 'fa-solid fa-pause';
             });
             playlist.appendChild(li);
         });
