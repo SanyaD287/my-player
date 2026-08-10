@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мій Плеєр</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: #fff; text-align: center; padding: 15px; }
+        .player-box { max-width: 400px; margin: 0 auto; background: #1e1e1e; padding: 20px; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .controls { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 15px 0; }
+        .btn { background: #2a2a2a; color: #fff; border: none; padding: 12px 20px; font-size: 18px; border-radius: 8px; cursor: pointer; }
+        .btn:active { background: #3e3e3e; }
+        .btn-main { background: #1db954; color: #000; font-weight: bold; padding: 14px 24px; font-size: 20px; border-radius: 50px; }
+        audio { width: 100%; margin-top: 10px; margin-bottom: 15px; }
+        ul { list-style: none; padding: 0; max-height: 350px; overflow-y: auto; text-align: left; }
+        li { padding: 12px; background: #2a2a2a; margin-bottom: 8px; border-radius: 8px; cursor: pointer; }
+        li.active { background: #1db954; color: #000; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="player-box">
+        <h2 id="current-title">Мій Плейлист</h2>
+        
+        <audio id="audio" controls></audio>
+
+        <div class="controls">
+            <button class="btn" id="prev-btn">⏮</button>
+            <button class="btn btn-main" id="play-btn">▶</button>
+            <button class="btn" id="next-btn">⏭</button>
+        </div>
+
+        <ul id="playlist"></ul>
+    </div>
+
+    <script>
+        // Запиши сюди свої справжні назви для кожного номера файлу:
+        const songs = [
+            { name: "Rammstein — Deuthland", file: "1.mp3" },
+            { name: "Нікіта Кисельов — Крила Лелеки", file: "2.mp3" },
+        
+        ];
+
+        const playlist = document.getElementById('playlist');
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('play-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentTitle = document.getElementById('current-title');
+
+        let currentTrackIndex = 0;
+
+        function loadTrack(index) {
+            currentTrackIndex = index;
+            audio.src = songs[index].file;
+            currentTitle.textContent = songs[index].name;
+            
+            const items = playlist.querySelectorAll('li');
+            items.forEach((li, i) => {
+                li.classList.toggle('active', i === index);
+            });
+        }
+
+        function playPause() {
+            if (audio.paused) {
+                audio.play();
+                playBtn.textContent = '⏸';
+            } else {
+                audio.pause();
+                playBtn.textContent = '▶';
+            }
+        }
+
+        function nextTrack() {
+            currentTrackIndex = (currentTrackIndex + 1) % songs.length;
+            loadTrack(currentTrackIndex);
+            audio.play();
+            playBtn.textContent = '⏸';
+        }
+
+        function prevTrack() {
+            currentTrackIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
+            loadTrack(currentTrackIndex);
+            audio.play();
+            playBtn.textContent = '⏸';
+        }
+
+        songs.forEach((song, index) => {
+            const li = document.createElement('li');
+            li.textContent = song.name;
+            li.addEventListener('click', () => {
+                loadTrack(index);
+                audio.play();
+                playBtn.textContent = '⏸';
+            });
+            playlist.appendChild(li);
+        });
+
+        playBtn.addEventListener('click', playPause);
+        nextBtn.addEventListener('click', nextTrack);
+        prevBtn.addEventListener('click', prevTrack);
+        audio.addEventListener('ended', nextTrack);
+
+        if (songs.length > 0) {
+            loadTrack(0);
+        }
+    </script>
+
+</body>
+</html>
