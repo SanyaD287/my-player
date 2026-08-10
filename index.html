@@ -286,7 +286,7 @@
                 <div class="track-name" id="current-title">Назва треку</div>
                 <div class="artist-name" id="current-artist">Мій Плеєр</div>
             </div>
-            <button class="btn-icon" style="font-size: 20px;"><i class="fa-regular fa-heart"></i></button>
+            <button class="btn-icon" id="heart-btn" style="font-size: 20px;"><i class="fa-regular fa-heart"></i></button>
         </div>
 
         <audio id="audio"></audio>
@@ -320,7 +320,7 @@
     <script>
         const songs = [
             { name: "Rammstein — Deutschland", file: "2.mp3" },
-            { name: "Нікіта Кисельов — Крила Лелеки", file: "1.mp3" }
+            { name: "Нікіта Кисельов — Крила Лелеки", file: "1.mp3" },
             { name: "Alena Omargalieva - Фанат", file: "3.mp3" },
             { name: "LOBODA - Пора домой", file: "4.mp3" },
             { name: "LOBODA - Стерва", file: "5.mp3" },
@@ -329,10 +329,10 @@
             { name: "Андріана - Ой, мамо", file: "8.mp3" },
         ];
 
-        // Сортування за НАЗВОЮ ПІСНІ (ігноруючи виконавця перед тире)
+        // Сортування за НАЗВОЮ ПІСНІ (підтримує як '—', так і '-')
         songs.sort((a, b) => {
             const getTrackName = (fullName) => {
-                const parts = fullName.split('—');
+                const parts = fullName.split(/—|-/);
                 return parts.length > 1 ? parts[1].trim() : fullName.trim();
             };
 
@@ -348,6 +348,9 @@
         const playIcon = document.getElementById('play-icon');
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const repeatBtn = document.getElementById('repeat-btn');
+        const heartBtn = document.getElementById('heart-btn');
         const currentTitle = document.getElementById('current-title');
         const currentArtist = document.getElementById('current-artist');
         
@@ -360,10 +363,12 @@
         const volumeIcon = document.getElementById('volume-icon');
 
         let currentTrackIndex = 0;
+        let isShuffle = false;
+        let isRepeat = false;
 
         function updateMediaSession() {
             if ('mediaSession' in navigator) {
-                const parts = songs[currentTrackIndex].name.split('—');
+                const parts = songs[currentTrackIndex].name.split(/—|-/);
                 const artist = parts.length > 1 ? parts[0].trim() : "Мій Плеєр";
                 const title = parts.length > 1 ? parts[1].trim() : songs[currentTrackIndex].name;
 
@@ -386,7 +391,7 @@
             currentTrackIndex = index;
             audio.src = songs[index].file;
             
-            const parts = songs[index].name.split('—');
+            const parts = songs[index].name.split(/—|-/);
             if (parts.length > 1) {
                 currentArtist.textContent = parts[0].trim();
                 currentTitle.textContent = parts[1].trim();
@@ -414,7 +419,15 @@
         }
 
         function nextTrack() {
-            currentTrackIndex = (currentTrackIndex + 1) % songs.length;
+            if (isShuffle) {
+                let randomIndex;
+                do {
+                    randomIndex = Math.floor(Math.random() * songs.length);
+                } while (randomIndex === currentTrackIndex && songs.length > 1);
+                currentTrackIndex = randomIndex;
+            } else {
+                currentTrackIndex = (currentTrackIndex + 1) % songs.length;
+            }
             loadTrack(currentTrackIndex);
             audio.play();
             playIcon.className = 'fa-solid fa-pause';
@@ -464,6 +477,31 @@
             }
         });
 
+        // Режим Shuffle (випадковий порядок)
+        shuffleBtn.addEventListener('click', () => {
+            isShuffle = !isShuffle;
+            shuffleBtn.style.color = isShuffle ? 'var(--spotify-green)' : 'var(--text-muted)';
+        });
+
+        // Режим Repeat (повтор)
+        repeatBtn.addEventListener('click', () => {
+            isRepeat = !isRepeat;
+            repeatBtn.style.color = isRepeat ? 'var(--spotify-green)' : 'var(--text-muted)';
+        });
+
+        // Кнопка Улюблене (Сердечко)
+        heartBtn.addEventListener('click', () => {
+            const icon = heartBtn.querySelector('i');
+            const isLiked = icon.classList.contains('fa-solid');
+            if (isLiked) {
+                icon.className = 'fa-regular fa-heart';
+                heartBtn.style.color = 'var(--text-muted)';
+            } else {
+                icon.className = 'fa-solid fa-heart';
+                heartBtn.style.color = 'var(--spotify-green)';
+            }
+        });
+
         songs.forEach((song, index) => {
             const li = document.createElement('li');
             li.textContent = song.name;
@@ -478,7 +516,16 @@
         playBtn.addEventListener('click', playPause);
         nextBtn.addEventListener('click', nextTrack);
         prevBtn.addEventListener('click', prevTrack);
-        audio.addEventListener('ended', nextTrack);
+
+        // Обробка закінчення треку з урахуванням режиму повтору
+        audio.addEventListener('ended', () => {
+            if (isRepeat) {
+                audio.currentTime = 0;
+                audio.play();
+            } else {
+                nextTrack();
+            }
+        });
 
         if (songs.length > 0) {
             loadTrack(0);
