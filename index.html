@@ -324,152 +324,158 @@
     </div>
 
     <script>
-        const songs = [
-            { name: "Rammstein — Deutschland", file: "2.mp3" },
-            { name: "Нікіта Кисельов — Крила Лелеки", file: "1.mp3" },
-        ];
+       const songs = [
+        { name: "Rammstein — Deutschland", file: "2.mp3" },
+        { name: "Нікіта Кисельов — Крила Лелеки", file: "1.mp3" },
+    ];
 
-        const playlist = document.getElementById('playlist');
-        const audio = document.getElementById('audio');
-        const playBtn = document.getElementById('play-btn');
-        const playIcon = document.getElementById('play-icon');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const currentTitle = document.getElementById('current-title');
-        const currentArtist = document.getElementById('current-artist');
+    // Функція сортування: A-Z (латиниця) -> А-Я (кирилиця)
+    songs.sort((a, b) => {
+        return a.name.localeCompare(b.name, ['en', 'uk', 'ru'], { sensitivity: 'base' });
+    });
+
+    const playlist = document.getElementById('playlist');
+    const audio = document.getElementById('audio');
+    const playBtn = document.getElementById('play-btn');
+    const playIcon = document.getElementById('play-icon');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const currentTitle = document.getElementById('current-title');
+    const currentArtist = document.getElementById('current-artist');
+    
+    const progressBar = document.getElementById('progress-bar');
+    const progressContainer = document.getElementById('progress-container');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationTimeEl = document.getElementById('duration-time');
+
+    const volumeSlider = document.getElementById('volume-slider');
+    const volumeIcon = document.getElementById('volume-icon');
+
+    let currentTrackIndex = 0;
+
+    function updateMediaSession() {
+        if ('mediaSession' in navigator) {
+            const parts = songs[currentTrackIndex].name.split('—');
+            const artist = parts.length > 1 ? parts[0].trim() : "Мій Плеєр";
+            const title = parts.length > 1 ? parts[1].trim() : songs[currentTrackIndex].name;
+
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: title,
+                artist: artist
+            });
+
+            navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+            navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
+            navigator.mediaSession.setActionHandler('play', playPause);
+            navigator.mediaSession.setActionHandler('pause', playPause);
+            
+            navigator.mediaSession.setActionHandler('seekbackward', null);
+            navigator.mediaSession.setActionHandler('seekforward', null);
+        }
+    }
+
+    function loadTrack(index) {
+        currentTrackIndex = index;
+        audio.src = songs[index].file;
         
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.getElementById('progress-container');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationTimeEl = document.getElementById('duration-time');
-
-        const volumeSlider = document.getElementById('volume-slider');
-        const volumeIcon = document.getElementById('volume-icon');
-
-        let currentTrackIndex = 0;
-
-        function updateMediaSession() {
-            if ('mediaSession' in navigator) {
-                const parts = songs[currentTrackIndex].name.split('—');
-                const artist = parts.length > 1 ? parts[0].trim() : "Мій Плеєр";
-                const title = parts.length > 1 ? parts[1].trim() : songs[currentTrackIndex].name;
-
-                navigator.mediaSession.metadata = new MediaMetadata({
-                    title: title,
-                    artist: artist
-                });
-
-                navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
-                navigator.mediaSession.setActionHandler('nexttrack', nextTrack);
-                navigator.mediaSession.setActionHandler('play', playPause);
-                navigator.mediaSession.setActionHandler('pause', playPause);
-                
-                navigator.mediaSession.setActionHandler('seekbackward', null);
-                navigator.mediaSession.setActionHandler('seekforward', null);
-            }
+        const parts = songs[index].name.split('—');
+        if (parts.length > 1) {
+            currentArtist.textContent = parts[0].trim();
+            currentTitle.textContent = parts[1].trim();
+        } else {
+            currentArtist.textContent = "Виконавець";
+            currentTitle.textContent = songs[index].name;
         }
+        
+        const items = playlist.querySelectorAll('li');
+        items.forEach((li, i) => {
+            li.classList.toggle('active', i === index);
+        });
 
-        function loadTrack(index) {
-            currentTrackIndex = index;
-            audio.src = songs[index].file;
-            
-            const parts = songs[index].name.split('—');
-            if (parts.length > 1) {
-                currentArtist.textContent = parts[0].trim();
-                currentTitle.textContent = parts[1].trim();
-            } else {
-                currentArtist.textContent = "Виконавець";
-                currentTitle.textContent = songs[index].name;
-            }
-            
-            const items = playlist.querySelectorAll('li');
-            items.forEach((li, i) => {
-                li.classList.toggle('active', i === index);
-            });
+        updateMediaSession();
+    }
 
-            updateMediaSession();
-        }
-
-        function playPause() {
-            if (audio.paused) {
-                audio.play();
-                playIcon.className = 'fa-solid fa-pause';
-            } else {
-                audio.pause();
-                playIcon.className = 'fa-solid fa-play';
-            }
-        }
-
-        function nextTrack() {
-            currentTrackIndex = (currentTrackIndex + 1) % songs.length;
-            loadTrack(currentTrackIndex);
+    function playPause() {
+        if (audio.paused) {
             audio.play();
             playIcon.className = 'fa-solid fa-pause';
+        } else {
+            audio.pause();
+            playIcon.className = 'fa-solid fa-play';
         }
+    }
 
-        function prevTrack() {
-            currentTrackIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
-            loadTrack(currentTrackIndex);
+    function nextTrack() {
+        currentTrackIndex = (currentTrackIndex + 1) % songs.length;
+        loadTrack(currentTrackIndex);
+        audio.play();
+        playIcon.className = 'fa-solid fa-pause';
+    }
+
+    function prevTrack() {
+        currentTrackIndex = (currentTrackIndex - 1 + songs.length) % songs.length;
+        loadTrack(currentTrackIndex);
+        audio.play();
+        playIcon.className = 'fa-solid fa-pause';
+    }
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    audio.addEventListener('timeupdate', () => {
+        if (audio.duration) {
+            const progressPercent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+            durationTimeEl.textContent = formatTime(audio.duration);
+        }
+    });
+
+    progressContainer.addEventListener('click', (e) => {
+        const width = progressContainer.clientWidth;
+        const clickX = e.offsetX;
+        const duration = audio.duration;
+        if (duration) {
+            audio.currentTime = (clickX / width) * duration;
+        }
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        audio.volume = val;
+        if (val == 0) {
+            volumeIcon.className = 'fa-solid fa-volume-xmark';
+        } else if (val < 0.5) {
+            volumeIcon.className = 'fa-solid fa-volume-low';
+        } else {
+            volumeIcon.className = 'fa-solid fa-volume-high';
+        }
+    });
+
+    // Відображення вже відсортованого списку
+    songs.forEach((song, index) => {
+        const li = document.createElement('li');
+        li.textContent = song.name;
+        li.addEventListener('click', () => {
+            loadTrack(index);
             audio.play();
             playIcon.className = 'fa-solid fa-pause';
-        }
-
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return "0:00";
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        audio.addEventListener('timeupdate', () => {
-            if (audio.duration) {
-                const progressPercent = (audio.currentTime / audio.duration) * 100;
-                progressBar.style.width = `${progressPercent}%`;
-                currentTimeEl.textContent = formatTime(audio.currentTime);
-                durationTimeEl.textContent = formatTime(audio.duration);
-            }
         });
+        playlist.appendChild(li);
+    });
 
-        progressContainer.addEventListener('click', (e) => {
-            const width = progressContainer.clientWidth;
-            const clickX = e.offsetX;
-            const duration = audio.duration;
-            if (duration) {
-                audio.currentTime = (clickX / width) * duration;
-            }
-        });
+    playBtn.addEventListener('click', playPause);
+    nextBtn.addEventListener('click', nextTrack);
+    prevBtn.addEventListener('click', prevTrack);
+    audio.addEventListener('ended', nextTrack);
 
-        volumeSlider.addEventListener('input', (e) => {
-            const val = e.target.value;
-            audio.volume = val;
-            if (val == 0) {
-                volumeIcon.className = 'fa-solid fa-volume-xmark';
-            } else if (val < 0.5) {
-                volumeIcon.className = 'fa-solid fa-volume-low';
-            } else {
-                volumeIcon.className = 'fa-solid fa-volume-high';
-            }
-        });
-
-        songs.forEach((song, index) => {
-            const li = document.createElement('li');
-            li.textContent = song.name;
-            li.addEventListener('click', () => {
-                loadTrack(index);
-                audio.play();
-                playIcon.className = 'fa-solid fa-pause';
-            });
-            playlist.appendChild(li);
-        });
-
-        playBtn.addEventListener('click', playPause);
-        nextBtn.addEventListener('click', nextTrack);
-        prevBtn.addEventListener('click', prevTrack);
-        audio.addEventListener('ended', nextTrack);
-
-        if (songs.length > 0) {
-            loadTrack(0);
-        }
+    if (songs.length > 0) {
+        loadTrack(0);
+    }
     </script>
 </body>
 </html>
